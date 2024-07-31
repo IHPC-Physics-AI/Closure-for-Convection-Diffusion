@@ -18,13 +18,26 @@ The training process is separated into three phases differing in terms of which 
 
 ### Phase 1: Physical Parameters
 
-The physical parameters refer to the parameters with physical significance. These include the diffusivity and velocity. The physical parameters are expected to depend on the physical setup. For instance, a physical wall in the CFD simulation can be interpreted as a cell on the numerical grid with low diffusivity. There are four sets of physical parameters to be learnt: the two components of diffusivity and velocity respectively. The new convection-diffusion equation is as follows:
+Parameters with physical significance include the diffusivity and velocity. The physical parameters are expected to depend on the physical setup. For instance, a physical wall in the CFD simulation can be interpreted as a cell on the numerical grid with low diffusivity. There are four sets of physical parameters to be learnt: the two components of diffusivity and velocity respectively. The new convection-diffusion equation is as follows:
 
 $$
-\frac{dc}{dt} = \nabla \cdot (D_x \frac{\partial^c}{\partial x^2} + D_y \frac{\partial^c}{\partial y^2} -(\vec{v}-\vec{v}_{corr})c) + R
+\frac{dc}{dt} = \nabla \cdot (D_x \frac{\partial^2 c}{\partial x^2} + D_y \frac{\partial^2 c}{\partial y^2} -(\vec{v}-\vec{v}_{corr})c) + R
 $$
 
 ### Phase 2: Neural Network Closure
+
+Taking a 2D plane-slice of a 3D flow field will inevitably lead to loss of information which cannot be fully captured by the numerical simuation. To account for flow in the 3rd dimension as well as numerical erors, a neural network is used to account for the difference between the desired and simulated concentration field. 
+
+As this term likely relies on concentration field on previous time steps, a recurrent neural network is used. 
+
+![image](https://github.com/user-attachments/assets/dbb6b0c3-5549-4bed-8e43-bb14bf08b177)
+
+$$\begin{aligned}
+c^{t+1}&=c^t+A(c^t)+D(c^t)+R(c^t)+F_1(c^t, A(c^t), D(c^t), T, h^t)\\
+h^{t+1}&=F_2(c^{t+1}, h^t)
+\end{aligned}$$
+
+$h$ contains the information of history of the flow, which is used to update the concentration field, which then used to update the history.
 
 ### Phase 3: Combined Training
 
